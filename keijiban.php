@@ -1,9 +1,9 @@
 <?php
 // データベースの接続情報
-define( 'DB_HOST', 'localhost');//
+define( 'DB_HOST', 'localhost');
 define( 'DB_USER', 'root');
 define( 'DB_PASS', 'root');
-define( 'DB_NAME', 'board');//
+define( 'DB_NAME', 'board');
 
 // タイムゾーン設定
 date_default_timezone_set('Asia/Tokyo');
@@ -27,12 +27,13 @@ try{
 		PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
 		PDO::MYSQL_ATTR_MULTI_STATEMENTS => false,
 	);
-    $pdo = new PDO('mysql:charset=UTF8;dbname='.DB_NAME.';host='.DB_HOST,DB_USER,DB_PASS, $option);}catch(PDOException $e) {
+    $pdo = new PDO('mysql:charset=UTF8;dbname='.DB_NAME.';host='.DB_HOST,DB_USER,DB_PASS, $option);
+
+    }catch(PDOException $e) {
 
     // 接続エラーのときエラー内容を取得する
     $error_message[] = $e->getMessage();
 }
-
 
 
 if( !empty($_POST['btn_submit']) ) {
@@ -41,7 +42,7 @@ if( !empty($_POST['btn_submit']) ) {
     $message = preg_replace( '/\A[\p{C}\p{Z}]++|[\p{C}\p{Z}]++\z/u', '', $_POST['message']);
 
    // 表示名の入力チェック
-   if( empty(['view_name']) ) {
+   if( empty($view_name) ) {
 	   $error_message[] = '表示名を入力してください。';
 	}else {
 		// セッションに表示名を保存
@@ -51,11 +52,18 @@ if( !empty($_POST['btn_submit']) ) {
 
 
    // メッセージの入力チェック
-    if( empty(['message']) ) {
+    if( empty($message) ) {
 	    $error_message[] = 'ひと言メッセージを入力してください。';
-    }
+    }else {
 
-if( empty($error_message) ) {
+		// 文字数を確認
+		if( 100 < mb_strlen($message, 'UTF-8') ) {
+			$error_message[] = 'ひと言メッセージは100文字以内で入力してください。';
+		}
+	}
+
+
+    if( empty($error_message) ) {
        // 書き込み日時を取得
        $current_date = date("Y-m-d H:i:s");
 
@@ -89,20 +97,21 @@ if( empty($error_message) ) {
         } else {
 	        $error_message[] = '書き込みに失敗しました。';
         }
-		if( empty($error_message) ) {
+        // プリペアドステートメントを削除
+        $stmt = null;
+        
+		header('Location: ./keijiban.php');
+        exit;
+	}
+}
 
+if( !empty($pdo) ) {
 			// メッセージのデータを取得する
 			$sql = "SELECT view_name,message,post_date FROM message ORDER BY post_date DESC";
 			$message_array = $pdo->query($sql);
 		}
-        // プリペアドステートメントを削除
-       $stmt = null;
-	   header('Location: ./');
-		exit;
-   }
-}
        // データベースの接続を閉じる
-        $pdo = null;
+$pdo = null;
 
 ?>
 
@@ -123,7 +132,7 @@ if( empty($error_message) ) {
 
 <!-- 登録完了のメッセージ機能 -->
 <?php if( empty($_POST['btn_submit']) && !empty($_SESSION['success_message']) ): ?>
-      <p class="success_message"><?php echo htmlspecialchars( $_SESSION['success_message'], ENT_QUOTES, 'UTF-8'); ?></p>
+      <p class = "success_message"><?php echo htmlspecialchars( $_SESSION['success_message'], ENT_QUOTES, 'UTF-8'); ?></p>
 	  <?php unset($_SESSION['success_message']); ?>
 	  <?php endif; ?>
 
@@ -139,22 +148,24 @@ if( empty($error_message) ) {
 
 
 <!-- 入力フォームを設置 -->
-<form method="post">
+<form method="post" action="keijiban.php">
 	<div>
 		<label for="view_name">表示名</label>
 		<input id="view_name" type="text" name="view_name" value="<?php if( !empty($_SESSION['view_name']) ){ echo htmlspecialchars( $_SESSION['view_name'], ENT_QUOTES, 'UTF-8'); } ?>">
 	</div>
 	<div>
 		<label for="message">ひと言メッセージ</label>
-		<textarea id="message" name="message"></textarea>
+		<textarea id="message" name="message"><?php if( !empty($message) ){ echo htmlspecialchars( $message, ENT_QUOTES, 'UTF-8'); } ?></textarea>
 	</div>
 	    <input type="submit" name="btn_submit" value="書き込む">
 </form>
 <hr>
-<section>
+
+
 <!-- ここに投稿されたメッセージを表示 -->
-<?php if( !empty($message_array) ): ?>
-　　<?php foreach( $message_array as $value ): ?> <!--$message_arrayからメッセージ1件分のデータを取り出し、$valueに入れた-->
+<section>
+<?php if( !empty($message_array) ){ ?>
+　　<?php foreach($message_array as $value ){ ?> <!--$message_arrayからメッセージ1件分のデータを取り出し、$valueに入れた-->
 
 　　　　<article>
     　　　<div class="info">
@@ -163,11 +174,8 @@ if( empty($error_message) ) {
     　　　</div>
     　　　　　　　<p><?php echo nl2br(htmlspecialchars( $value['message'], ENT_QUOTES, 'UTF-8')); ?></p>
 　　　　</article>
-　　<?php endforeach; ?>
-<?php endif; ?>
-
-
-
+    <?php } ?>
+<?php } ?>
 </section>
 </body>
 </html>

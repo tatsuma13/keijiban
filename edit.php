@@ -36,12 +36,16 @@ try{
 		PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
 		PDO::MYSQL_ATTR_MULTI_STATEMENTS => false,
 	);
-    $pdo = new PDO('mysql:charset=UTF8;dbname='.DB_NAME.';host='.DB_HOST,DB_USER,DB_PASS, $option);}catch(PDOException $e) {
+    $pdo = new PDO('mysql:charset=UTF8;dbname='.DB_NAME.';host='.DB_HOST,DB_USER,DB_PASS, $option);
+
+}catch(PDOException $e) {
 
 // 接続エラーのときエラー内容を取得する
     $error_message[] = $e->getMessage();
     }
-    if( !empty($_GET['message_id'])&& empty($_POST['message_id']) ) {
+
+if( !empty($_GET['message_id']) && empty($_POST['message_id']) ) {
+    
     // SQL作成
 	$stmt = $pdo->prepare("SELECT * FROM message WHERE id = :id");
 
@@ -59,7 +63,9 @@ try{
 		header("Location: ./admin.php");
 		exit;
     }
-	}elseif( !empty($_POST['message_id']) ) {
+
+}elseif( !empty($_POST['message_id']) ) {
+
    	// 空白除去
 	$view_name = preg_replace( '/\A[\p{C}\p{Z}]++|[\p{C}\p{Z}]++\z/u', '', $_POST['view_name']);
 	$message = preg_replace( '/\A[\p{C}\p{Z}]++|[\p{C}\p{Z}]++\z/u', '', $_POST['message']);
@@ -72,6 +78,12 @@ try{
 	// メッセージの入力チェック
 	if( empty($message) ) {
 		$error_message[] = 'メッセージを入力してください。';
+	}else {
+
+		// 文字数を確認
+		if( 100 < mb_strlen($message, 'UTF-8') ) {
+            $error_message[] = 'ひと言メッセージは100文字以内で入力してください。';
+		}
 	}
 
 	if( empty($error_message) ) {
@@ -102,13 +114,13 @@ try{
    }
 
    // 更新に成功したら一覧に戻る
-    if( $res ) {
-    header("Location: ./admin.php");
-    exit;
-    }
-	}
+             if( $res ) {
+                header("Location: ./admim.php");
+                exit;
+             }
+	   }
 
-    }
+}
 
 // データベースの接続を閉じる
     $stmt = null;

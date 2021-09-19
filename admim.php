@@ -44,6 +44,7 @@ try{
     // 接続エラーのときエラー内容を取得する
     $error_message[] = $e->getMessage();
 }
+
    //ログインパスワードの設定
 if( !empty($_POST['btn_submit']) ) {
 	if( !empty($_POST['admin_password']) && $_POST['admin_password'] === PASSWORD ) {
@@ -107,8 +108,8 @@ if( !empty($pdo) ) {
 
 
 <!-- ここに投稿されたメッセージを表示 -->
-<?php if( !empty($message_array) ): ?>
-　　<?php foreach( $message_array as $value ): ?> <!--$message_arrayからメッセージ1件分のデータを取り出し、$valueに入れた-->
+<?php if( !empty($message_array)){ ?>
+　　<?php foreach( $message_array as $value ){ ?> <!--$message_arrayからメッセージ1件分のデータを取り出し、$valueに入れた-->
 
 　　　　<article>
     　　　<div class="info">
@@ -118,8 +119,13 @@ if( !empty($pdo) ) {
     　　　</div>
     　　　　　　　<p><?php echo nl2br(htmlspecialchars( $value['message'], ENT_QUOTES, 'UTF-8')); ?></p>
 　　　　</article>
-　　<?php endforeach; ?>
-<?php endif; ?>
+　　<?php } ?>
+<?php } ?>
+
+  <!--ログアウトするためのフォーム-->
+  　　<form method="get" action="">
+    　　　<input type="submit" name="btn_logout" value="ログアウト">
+　　　</form>
 <?php else: ?>
 
     <!--ログインするためのフォーム-->
@@ -132,12 +138,6 @@ if( !empty($pdo) ) {
 　　</form>	
 	<?php endif; ?>
     　　    
-    <!--ログアウトするためのフォーム-->
-　　　<form method="get" action="">
-    　　　<input type="submit" name="btn_logout" value="ログアウト">
-　　　</form>
-
-
 </section>
 </body>
 </html>
